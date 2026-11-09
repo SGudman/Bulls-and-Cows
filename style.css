@@ -58,7 +58,8 @@ label {
   color: var(--muted);
 }
 
-select {
+select,
+input {
   width: 100%;
   min-height: 48px;
   margin-bottom: 12px;
@@ -70,7 +71,39 @@ select {
   font: inherit;
 }
 
-select:focus-visible {
+button {
+  min-height: 48px;
+  margin: 8px 0 12px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #2d1a0e;
+  background: linear-gradient(145deg, #ffb15f, #f28a37);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 750;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.round-status {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+select:focus-visible,
+input:focus-visible,
+button:focus-visible {
   outline: 3px solid var(--orange-400);
   outline-offset: 4px;
 }
