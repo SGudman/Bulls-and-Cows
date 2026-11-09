@@ -1,5 +1,10 @@
 import { countPossibleSecrets } from "./countPossibleSecrets.js";
 import { createDigitValidator } from "./createDigitValidator.js";
+import { generateSecret } from "./generateSecret.js";
+import { submitGuess } from "./submitGuess.js";
+import type { Round } from "./submitGuess.js";
+
+let round: Round | null = null;
 
 const main = document.createElement("main");
 main.className = "game";
@@ -85,11 +90,54 @@ roundStatus.className = "round-status";
 roundStatus.setAttribute("aria-live", "polite");
 roundStatus.textContent = "Выберите настройки и начните игру.";
 
+const guessForm = document.createElement("form");
+guessForm.className = "guess-form";
+const submitButton = document.createElement("button");
+submitButton.type = "submit";
+submitButton.textContent = "Проверить";
+submitButton.disabled = true;
+guessForm.append(guessLabel, guessInput, submitButton);
+
+const historyHeading = document.createElement("h2");
+historyHeading.textContent = "История попыток";
+const historyList = document.createElement("ol");
+historyList.className = "history";
+
+function renderHistory(): void {
+  historyList.replaceChildren();
+  round?.history.forEach((entry) => {
+    const item = document.createElement("li");
+    item.textContent = `${entry.guess} — bulls: ${entry.bulls}, cows: ${entry.cows}`;
+    historyList.append(item);
+  });
+}
+
+guessForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!round) return;
+
+  const nextRound = submitGuess(round, guessInput.value);
+  if (nextRound === round) {
+    roundStatus.textContent =
+      "Введите число нужной длины без повторяющихся цифр. Уже использованные попытки не добавляются.";
+    return;
+  }
+
+  round = nextRound;
+  renderHistory();
+  roundStatus.textContent = `Попыток: ${round.history.length}.`;
+  guessInput.value = "";
+  guessInput.focus();
+});
+
 startButton.addEventListener("click", () => {
   const base = Number(baseSelect.value);
   const length = Number(lengthSelect.value);
   const isAllowedDigit = createDigitValidator(base);
+  round = { secret: generateSecret(length, base), base, length, history: [] };
+  renderHistory();
 
+  submitButton.disabled = false;
   baseSelect.disabled = true;
   lengthSelect.disabled = true;
   startButton.disabled = true;
@@ -114,9 +162,10 @@ panel.append(
   lengthSelect,
   possibilities,
   startButton,
-  guessLabel,
-  guessInput,
+  guessForm,
   roundStatus,
+  historyHeading,
+  historyList,
 );
 main.append(heading, panel);
 document.body.append(main);

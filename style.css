@@ -108,6 +108,23 @@ button:focus-visible {
   outline-offset: 4px;
 }
 
+.guess-form {
+  display: grid;
+  gap: 12px;
+}
+
+.history {
+  margin: 0;
+  padding-left: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.history li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
 .possibilities {
   margin: 8px 0 0;
   color: var(--orange-400);
