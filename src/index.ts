@@ -1,10 +1,13 @@
 import { countPossibleSecrets } from "./countPossibleSecrets.js";
 import { createDigitValidator } from "./createDigitValidator.js";
 import { generateSecret } from "./generateSecret.js";
+import { getRoundResult } from "./getRoundResult.js";
 import { submitGuess } from "./submitGuess.js";
 import type { Round } from "./submitGuess.js";
 
 let round: Round | null = null;
+let startedAt = 0;
+let isFinished = false;
 
 const main = document.createElement("main");
 main.className = "game";
@@ -114,7 +117,7 @@ function renderHistory(): void {
 
 guessForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (!round) return;
+  if (!round || isFinished) return;
 
   const nextRound = submitGuess(round, guessInput.value);
   if (nextRound === round) {
@@ -125,9 +128,18 @@ guessForm.addEventListener("submit", (event) => {
 
   round = nextRound;
   renderHistory();
-  roundStatus.textContent = `Попыток: ${round.history.length}.`;
   guessInput.value = "";
-  guessInput.focus();
+  const result = getRoundResult(round, startedAt, performance.now());
+  if (result) {
+    isFinished = true;
+    guessInput.disabled = true;
+    submitButton.disabled = true;
+    roundStatus.textContent = `Победа! Попыток: ${result.attempts}. Время: ${(result.elapsedMs / 1000).toFixed(1)} с.`;
+    newGameButton.focus();
+  } else {
+    roundStatus.textContent = `Попыток: ${round.history.length}.`;
+    guessInput.focus();
+  }
 });
 
 startButton.addEventListener("click", () => {
@@ -135,6 +147,9 @@ startButton.addEventListener("click", () => {
   const length = Number(lengthSelect.value);
   const isAllowedDigit = createDigitValidator(base);
   round = { secret: generateSecret(length, base), base, length, history: [] };
+  startedAt = performance.now();
+  isFinished = false;
+  newGameButton.disabled = false;
   renderHistory();
 
   submitButton.disabled = false;
@@ -144,14 +159,36 @@ startButton.addEventListener("click", () => {
   guessInput.disabled = false;
   guessInput.maxLength = length;
   guessInput.inputMode = base === 16 ? "text" : "numeric";
-  guessInput.addEventListener("input", () => {
+  guessInput.oninput = () => {
     guessInput.value = [...guessInput.value.toLowerCase()]
       .filter(isAllowedDigit)
       .slice(0, length)
       .join("");
-  });
+  };
   roundStatus.textContent = `Раунд начат. Длина: ${length}. Допустимые символы: ${"0123456789abcdef".slice(0, base)}.`;
   guessInput.focus();
+});
+
+const newGameButton = document.createElement("button");
+newGameButton.type = "button";
+newGameButton.textContent = "Новая игра";
+newGameButton.disabled = true;
+newGameButton.addEventListener("click", () => {
+  round = null;
+  startedAt = 0;
+  isFinished = false;
+  baseSelect.disabled = false;
+  lengthSelect.disabled = false;
+  startButton.disabled = false;
+  submitButton.disabled = true;
+  newGameButton.disabled = true;
+  guessInput.disabled = true;
+  guessInput.value = "";
+  guessInput.oninput = null;
+  renderHistory();
+  updateSettings();
+  roundStatus.textContent = "Выберите настройки и начните игру.";
+  baseSelect.focus();
 });
 
 panel.append(
@@ -166,6 +203,7 @@ panel.append(
   roundStatus,
   historyHeading,
   historyList,
+  newGameButton,
 );
 main.append(heading, panel);
 document.body.append(main);
