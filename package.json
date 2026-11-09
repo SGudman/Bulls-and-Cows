@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.cjs --max-warnings 0",
     "format": "prettier --check .",
     "test": "jest --passWithNoTests",
