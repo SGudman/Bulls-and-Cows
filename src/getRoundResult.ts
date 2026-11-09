@@ -12,8 +12,13 @@ export function getRoundResult(
   startedAt: number,
   finishedAt: number,
 ): RoundResult | null {
-  void round;
-  void startedAt;
-  void finishedAt;
-  return null;
+  const lastGuess = round.history[round.history.length - 1];
+  if (!lastGuess || lastGuess.bulls !== round.length) return null;
+
+  return {
+    attempts: round.history.length,
+    elapsedMs: finishedAt - startedAt,
+    length: round.length,
+    base: round.base,
+  };
 }
