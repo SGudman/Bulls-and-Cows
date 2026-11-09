@@ -1,3 +1,6 @@
+import { evaluateGuess } from "./evaluateGuess";
+import { isValidGuess } from "./isValidGuess";
+
 export type GuessEntry = {
   readonly guess: string;
   readonly bulls: number;
@@ -12,6 +15,13 @@ export type Round = {
 };
 
 export function submitGuess(round: Round, guess: string): Round {
-  void guess;
-  return round;
+  const normalizedGuess = guess.toLowerCase();
+  if (!isValidGuess(normalizedGuess, round.length, round.base)) return round;
+  if (round.history.some((entry) => entry.guess === normalizedGuess))
+    return round;
+
+  const result = evaluateGuess(round.secret, normalizedGuess);
+  const entry = { guess: normalizedGuess, ...result };
+
+  return { ...round, history: [...round.history, entry] };
 }
